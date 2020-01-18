@@ -1,5 +1,6 @@
 import torchvision.datasets as ds
 import torch
+import time
 from collections import OrderedDict
 from torch import nn, Tensor
 from torch.utils.data import DataLoader
@@ -57,13 +58,17 @@ class Model(object):
         # self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1e-3, weight_decay=1e-4)
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=1e-3, weight_decay=1e-4, momentum=0.9)
 
+        self.meet_n_samples = None
         self.epoch_training_loss = None
+        self.epoch_training_corr = None
 
         self.use_gpu = torch.cuda.is_available() and ngpus
         self.ngpus = ngpus
 
     def epoch_init(self):
         self.epoch_training_loss = 0
+        self.epoch_training_corr = 0
+        self.meet_n_samples = 0
         pass
 
     def step(self, x: Tensor, y: Tensor):
@@ -81,8 +86,16 @@ class Model(object):
 
         with torch.set_grad_enabled(True):
             y_pred_prob = self.model(x)
-            print(y_pred_prob)
-        return 1, 2
+            y_pred = torch.max(y_pred_prob.data, 1).indices
+            loss = self.loss_fn(y_pred_prob, y)
+            loss.backward()
+            self.optimizer.step()
+        self.meet_n_samples += x.size(0)
+        self.epoch_training_loss += loss.item() * x.size(0)
+        self.epoch_training_corr += torch.sum(y_pred == y.data).double()
+        mean_loss = self.epoch_training_loss / self.meet_n_samples
+        mean_acc = self.epoch_training_corr / self.meet_n_samples
+        return mean_loss, mean_acc
 
     def load(self):
         pass
@@ -124,10 +137,19 @@ def fit(
 
     for epoch in range(max_epochs):
         print(f'Epoch {epoch + 1}/{max_epochs}')
+
+        start_time = time.time()
+        model.epoch_init()
+
         for i, (x, y) in enumerate(train_set):
             train_loss, train_acc = model.step(x, y)
             kwargs = {'loss': train_loss, 'acc': train_acc}
             disp_progress(i, len(train_set), verbose, disp_freq, **kwargs)
+
+        time_cost = round(time.time() - start_time)
+        # msg_1 = f' - val_loss: {val_loss:.4f} - val_acc: {val_acc:.4f}'
+        msg_2 = f' - {time_cost}s/epoch.'
+        print(''.join([msg_2]))
 
 
 def main():
