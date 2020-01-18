@@ -1,26 +1,13 @@
 import torchvision.datasets as ds
 import torch
 import time
+import os
 from collections import OrderedDict
 from torch import nn, Tensor
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
 
 NUM_WORKER = 4
-
-
-def disp_progress(count: int, total: int, verbose=True, freq=10, **kwargs):
-    LEN = 30
-    i = int(count / total * LEN)
-    bar = ''.join(['=' * i, '>', '.' * (LEN - i - 1)]) if LEN - i - 1 else '=' * LEN
-    msg = ''.join([f'- {k}: {v:.4f} ' for k, v in kwargs.items()])
-    out = ''.join(['\r', f'{count + 1}/{total}', ' [', bar, '] ', msg])
-    if verbose:
-        print(out, end='')
-        return
-
-    if count > 0 and total % count == freq:
-        print(''.join([f'{count + 1}/{total}', msg]))
 
 
 class LeNet(nn.Module):
@@ -65,6 +52,13 @@ class Model(object):
         self.use_gpu = torch.cuda.is_available() and ngpus
         self.ngpus = ngpus
 
+        if self.use_gpu and ngpus == 1:
+            torch.cuda.set_device(0)
+            self.model.cuda()
+            print('Using {}'.format(torch.cuda.get_device_name()))
+        else:
+            raise PermissionError('There are not so many GPUs.')
+
     def epoch_init(self):
         self.epoch_training_loss = 0
         self.epoch_training_corr = 0
@@ -74,12 +68,8 @@ class Model(object):
     def step(self, x: Tensor, y: Tensor):
         self.model.train()
         if self.use_gpu:
-            x.cuda()
-            y.cuda()
-            x.requires_grad = True
-            y.requires_grad = True
-            # x = torch.autograd.Variable(x.cuda())
-            # y = torch.autograd.Variable(y.cuda())
+            x = torch.autograd.Variable(x.cuda())
+            y = torch.autograd.Variable(y.cuda())
 
         # Make gradients zero for parameters 'W', 'b'
         self.optimizer.zero_grad()
@@ -104,12 +94,28 @@ class Model(object):
         pass
 
 
+def disp_progress(count: int, total: int, verbose=True, freq=10, **kwargs):
+    LEN = 30
+    i = int(count / total * LEN)
+    bar = ''.join(['=' * i, '>', '.' * (LEN - i - 1)]) if LEN - i - 1 else '=' * LEN
+    msg = ''.join([f'- {k}: {v:.4f} ' for k, v in kwargs.items()])
+    out = ''.join(['\r', f'{count + 1}/{total}', ' [', bar, '] ', msg])
+    if verbose:
+        print(out, end='')
+        return
+
+    if count > 0 and total % count == freq:
+        print(''.join([f'{count + 1}/{total}', msg]))
+
+
 def load_data(batch_size=32, valid_batch_size=32):
     train_transformations = transforms.Compose([
-        transforms.ToTensor(),
+        transforms.ToTensor()
+        # transforms.Normalize((0.5), (0.5))
     ])
     test_transformations = transforms.Compose([
-        transforms.ToTensor(),
+        transforms.ToTensor()
+        # transforms.Normalize((0.5), (0.5))
     ])
     kwargs_dl = {'root': '../data', 'download': True}
     train_set = ds.MNIST(train=True, transform=train_transformations, **kwargs_dl)
