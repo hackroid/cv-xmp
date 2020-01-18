@@ -13,21 +13,22 @@ NUM_WORKER = 4
 class LeNet(nn.Module):
     def __init__(self):
         super(LeNet, self).__init__()
+        acti_func = nn.Tanh
         self.conv = nn.Sequential(OrderedDict([
             ('conv1', nn.Conv2d(1, 6, kernel_size=(5, 5), padding=2, bias=True)),
-            ('act1', nn.Tanh()),
+            ('act1', acti_func()),
             ('pool2', nn.MaxPool2d(kernel_size=(2, 2), stride=2)),
             ('conv3', nn.Conv2d(6, 16, kernel_size=(5, 5), padding=0, bias=True)),
-            ('act3', nn.Tanh()),
+            ('act3', acti_func()),
             ('pool4', nn.MaxPool2d(kernel_size=(2, 2), stride=2)),
             ('conv5', nn.Conv2d(16, 120, kernel_size=(5, 5))),
-            ('act5', nn.Tanh())
+            ('act5', acti_func())
         ]))
         self.fc = nn.Sequential(OrderedDict([
             ('fc6', nn.Linear(120, 84)),
-            ('act6', nn.Tanh()),
+            ('act6', acti_func()),
             ('fc7', nn.Linear(84, 10)),
-            ('act7', nn.Tanh()),
+            ('act7', acti_func()),
             ('sft7', nn.Softmax())
         ]))
 
@@ -42,8 +43,8 @@ class Model(object):
     def __init__(self, model: nn.Module, ngpus=1):
         self.model = model
         self.loss_fn = nn.CrossEntropyLoss()
-        # self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1e-3, weight_decay=1e-4)
-        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=1e-3, weight_decay=1e-4, momentum=0.9)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1e-3, weight_decay=1e-4)
+        # self.optimizer = torch.optim.SGD(self.model.parameters(), lr=1e-3, weight_decay=1e-4, momentum=0.9)
 
         self.meet_n_samples = None
         self.epoch_training_loss = None
@@ -57,7 +58,8 @@ class Model(object):
             self.model.cuda()
             print('Using {}'.format(torch.cuda.get_device_name()))
         else:
-            raise PermissionError('There are not so many GPUs.')
+            # raise PermissionError('There are not so many GPUs.')
+            pass
 
     def epoch_init(self):
         self.epoch_training_loss = 0
