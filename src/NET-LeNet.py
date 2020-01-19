@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
 
 NUM_WORKER = 4
+FUNC = "mish"
 writer = SummaryWriter(os.path.join("..", "result", "runs"))
 torch.manual_seed(66)
 
@@ -201,6 +202,8 @@ def fit(
     print("Using Torch backend")
     assert isinstance(model, Model)
     ct = 0
+    tag_l = "loss_{}".format(FUNC)
+    tan_a = "acc_{}".format(FUNC)
     train_set, test_set = dataloader(batch_size, valid_batch_size)
 
     for epoch in range(max_epochs):
@@ -217,8 +220,8 @@ def fit(
             writer.add_scalars(
                 "train_loss&acc",
                 {
-                    "loss": train_loss,
-                    "acc": train_acc
+                    tag_l: train_loss,
+                    tan_a: train_acc
                 },
                 ct
             )
