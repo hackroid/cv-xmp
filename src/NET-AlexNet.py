@@ -29,7 +29,7 @@ class AlexNet(nn.Module):
     def __init__(self, num_classes=10):
         super(AlexNet, self).__init__()
         self.conv = nn.Sequential(OrderedDict([
-            ('conv1', nn.Conv2d(3, 64, kernel_size=11, stride=4, padding=2)),
+            ('conv1', nn.Conv2d(1, 64, kernel_size=11, stride=4, padding=2)),
             ('act1', nn.ReLU(inplace=True)),
             ('pool1', nn.MaxPool2d(kernel_size=3, stride=2)),
             ('conv2', nn.Conv2d(64, 192, kernel_size=5, padding=2)),
@@ -39,9 +39,9 @@ class AlexNet(nn.Module):
             ('act3', nn.ReLU(inplace=True)),
             ('conv4', nn.Conv2d(384, 256, kernel_size=3, padding=1)),
             ('act4', nn.ReLU(inplace=True)),
-            ('conv4', nn.Conv2d(256, 256, kernel_size=3, padding=1)),
-            ('act4', nn.ReLU(inplace=True)),
-            ('pool4', nn.MaxPool2d(kernel_size=3, stride=2))
+            ('conv5', nn.Conv2d(256, 256, kernel_size=3, padding=1)),
+            ('act5', nn.ReLU(inplace=True)),
+            ('pool5', nn.MaxPool2d(kernel_size=3, stride=2))
         ]))
         self.avg_pool = nn.Sequential(OrderedDict([
             ('avg_pool', nn.AdaptiveAvgPool2d((6, 6)))
@@ -195,8 +195,9 @@ def load_data(batch_size=32, valid_batch_size=32):
         transforms.Normalize([0.5], [0.5]),
     ])
     test_transformations = transforms.Compose([
+        transforms.Resize(224),
         transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        transforms.Normalize([0.5], [0.5])
     ])
     kwargs_dl = {'root': '../data', 'download': True}
     train_set = ds.FashionMNIST(train=True, transform=train_transformations, **kwargs_dl)
