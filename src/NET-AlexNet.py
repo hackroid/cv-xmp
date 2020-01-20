@@ -4,7 +4,6 @@ import time
 import os
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-import numpy as np
 from tensorboardX import SummaryWriter
 from collections import OrderedDict
 from torch import nn, Tensor
@@ -53,7 +52,7 @@ class AlexNet(nn.Module):
             ('drp_b', nn.Dropout()),
             ('fc7', nn.Linear(4096, 4096)),
             ('act7', nn.ReLU(inplace=True)),
-            ('fc8',nn.Linear(4096, num_classes),)
+            ('fc8', nn.Linear(4096, num_classes),)
         ]))
 
     def forward(self, x):
