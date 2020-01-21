@@ -271,6 +271,7 @@ def fit(
                 _test_loss, _test_acc = model.eval(xt, yt)
                 test_loss = (test_loss if test_loss >= _test_loss else _test_loss)
                 test_acc = (test_acc if test_acc <= _test_acc else _test_acc)
+                break
             writer.add_scalars(
                 "resnet",
                 {
@@ -291,7 +292,7 @@ def fit(
 def main():
     model = Model(ResNet(ResUnit))
     print(model.model)
-    fit(model, load_data, max_epochs=20, batch_size=128, valid_batch_size=64)
+    fit(model, load_data, max_epochs=20, batch_size=128, valid_batch_size=128)
     writer.close()
 
 
