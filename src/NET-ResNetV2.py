@@ -337,7 +337,7 @@ def fit(
 
 def main():
     model = Model(ResNet())
-    fit(model, load_data, max_epochs=5, batch_size=128, valid_batch_size=128)
+    fit(model, load_data, max_epochs=20, batch_size=128, valid_batch_size=128)
     writer.close()
 
 

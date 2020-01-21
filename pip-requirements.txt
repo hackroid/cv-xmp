@@ -14,3 +14,6 @@ ipykernel
 bokeh
 pickleshare
 autopep8
+tensorflow
+tensorboard
+tensorboradX
