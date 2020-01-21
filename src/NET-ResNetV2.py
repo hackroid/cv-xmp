@@ -64,14 +64,14 @@ class ResNet(nn.Module):
         self.layer8b0 = self.gen_unit(64, 192, 8, 0, True)
         self.layer8b1 = self.gen_unit(128, 192, 8, 1, True)
 
-        self.layer9b0 = self.gen_unit(64, 192, 9, 0, True)
-        self.layer9b1 = self.gen_unit(128, 192, 9, 1, True)
-
-        self.layer10b0 = self.gen_unit(64, 192, 10, 0, True)
-        self.layer10b1 = self.gen_unit(128, 192, 10, 1, True)
-
-        self.layer11b0 = self.gen_unit(64, 192, 11, 0, True)
-        self.layer11b1 = self.gen_unit(128, 192, 11, 1, True)
+        # self.layer9b0 = self.gen_unit(64, 192, 9, 0, True)
+        # self.layer9b1 = self.gen_unit(128, 192, 9, 1, True)
+        #
+        # self.layer10b0 = self.gen_unit(64, 192, 10, 0, True)
+        # self.layer10b1 = self.gen_unit(128, 192, 10, 1, True)
+        #
+        # self.layer11b0 = self.gen_unit(64, 192, 11, 0, True)
+        # self.layer11b1 = self.gen_unit(128, 192, 11, 1, True)
 
         self.end = nn.Sequential(OrderedDict([
             ('end-bn', nn.BatchNorm2d(self.in_chan)),
@@ -121,9 +121,9 @@ class ResNet(nn.Module):
         x = (self.layer6b0(x) + self.layer6b1(x))
         x = (self.layer7b0(x) + self.layer7b1(x))
         x = (self.layer8b0(x) + self.layer8b1(x))
-        x = (self.layer9b0(x) + self.layer9b1(x))
-        x = (self.layer10b0(x) + self.layer10b1(x))
-        x = (self.layer11b0(x) + self.layer11b1(x))
+        # x = (self.layer9b0(x) + self.layer9b1(x))
+        # x = (self.layer10b0(x) + self.layer10b1(x))
+        # x = (self.layer11b0(x) + self.layer11b1(x))
         x = self.end(x)
         x = F.avg_pool2d(x, 8)
         x = x.view(x.size(0), -1)
@@ -135,8 +135,8 @@ class Model(object):
     def __init__(self, model: nn.Module, ngpus=1):
         self.model = model
         self.loss_fn = nn.CrossEntropyLoss()
-        # self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1e-3, weight_decay=1e-4)
-        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=1e-3, weight_decay=1e-4, momentum=0.9)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1e-3, weight_decay=1e-4)
+        # self.optimizer = torch.optim.SGD(self.model.parameters(), lr=1e-3, weight_decay=1e-4, momentum=0.9)
 
         self.history = {'loss': [], 'acc': [], 'val_loss': [], 'val_acc': []}
         self.best_loss = 2e16 - 1
@@ -259,11 +259,11 @@ def load_data(batch_size=32, valid_batch_size=32):
         transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
     ])
     test_transformations = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
     kwargs_dl = {'root': '../data', 'download': True}
     train_set = ds.CIFAR10(train=True, transform=train_transformations, **kwargs_dl)
