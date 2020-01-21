@@ -2,6 +2,7 @@ import torchvision.datasets as ds
 import torch
 import time
 import os
+import datetime as dt
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from tensorboardX import SummaryWriter
@@ -12,7 +13,9 @@ from torchvision.transforms import transforms
 
 NUM_WORKER = 4
 torch.manual_seed(66)
-writer = SummaryWriter(os.path.join("..", "result", "runs"))
+curr_time = dt.datetime.now()
+curr_time = format(curr_time).replace(' ', '').replace('-', '').replace(':', '').replace('.', '')
+writer = SummaryWriter(os.path.join("..", "result", "ownres{}"))
 
 
 class Mish(nn.Module):
@@ -301,22 +304,29 @@ def fit(
             kwargs = {'loss': train_loss, 'acc': train_acc}
             disp_progress(i, len(train_set), verbose, disp_freq, **kwargs)
             writer.add_scalars(
-                "train_loss&acc",
+                "res_br",
                 {
-                    "loss": train_loss,
-                    "acc": train_acc
+                    "train_loss": train_loss,
+                    "train_acc": train_acc
+                },
+                ct
+            )
+            test_loss = 0.0
+            test_acc = 2e16 - 1
+            for j, (xt, yt) in enumerate(test_set):
+                _test_loss, _test_acc = model.eval(xt, yt)
+                test_loss = (test_loss if test_loss >= _test_loss else _test_loss)
+                test_acc = (test_acc if test_acc <= _test_acc else _test_acc)
+            writer.add_scalars(
+                "res_br",
+                {
+                    "test_loss": test_loss,
+                    "test_acc": test_acc
                 },
                 ct
             )
 
         print('\n', end='')
-
-        test_loss = 0.0
-        test_acc = 2e16 - 1
-        for i, (x, y) in enumerate(test_set):
-            _test_loss, _test_acc = model.eval(x, y)
-            test_loss = (test_loss if test_loss >= _test_loss else _test_loss)
-            test_acc = (test_acc if test_acc <= _test_acc else _test_acc)
 
         time_cost = round(time.time() - start_time)
         msg_1 = f' - val_loss: {test_loss:.4f} - val_acc: {test_acc:.4f}'
@@ -326,7 +336,7 @@ def fit(
 
 def main():
     model = Model(ResNet())
-    fit(model, load_data, max_epochs=5, batch_size=32, valid_batch_size=32)
+    fit(model, load_data, max_epochs=5, batch_size=128, valid_batch_size=64)
     writer.close()
 
 
