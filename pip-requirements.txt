@@ -16,4 +16,4 @@ pickleshare
 autopep8
 tensorflow
 tensorboard
-tensorboradX
+tensorboardX
